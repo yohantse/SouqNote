@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Simple_Sales
 A simple and intuitive Flutter application designed for managing the sales and inventory of a small business. This app allows users to efficiently track raw materials, manage product inventory, record sales, and analyze profits or losses. Ideal for small businesses or personal use where tracking sales and inventory is essential.
 
@@ -73,3 +74,21 @@ For any questions or feedback, please contact me at [aanandab44@gmail.com](mailt
 
 ---
 
+=======
+# aadhisree
+
+A new Flutter project.
+
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
+>>>>>>> a7f3586 (first)
