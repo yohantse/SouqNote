@@ -120,7 +120,7 @@ class RawMaterialScreen extends StatelessWidget {
                       child: ListTile(
                         title: Text(material.name),
                         subtitle:
-                            Text("Cost: \$${material.cost.toStringAsFixed(2)}"),
+                            Text("Cost: \₹${material.cost.toStringAsFixed(2)}"),
                         trailing: IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () {
@@ -235,7 +235,7 @@ class ProductScreen extends StatelessWidget {
                       child: ListTile(
                         title: Text(product.name),
                         subtitle: Text(
-                            "Count: ${product.count}, Price: \$${product.sellingPrice.toStringAsFixed(2)}"),
+                            "Count: ${product.count}, Price: \₹${product.sellingPrice.toStringAsFixed(2)}"),
                         trailing: IconButton(
                           icon: Icon(Icons.edit),
                           onPressed: () {
@@ -362,20 +362,7 @@ class SaleScreen extends StatelessWidget {
           ),
           SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () {
-              String buyer = _buyerController.text;
-              int quantity = int.tryParse(_quantityController.text) ?? 0;
-              if (buyer.isNotEmpty && quantity > 0) {
-                context.read<ProductManager>().recordSale(
-                      context.read<ProductManager>().selectedProductId!,
-                      buyer,
-                      quantity,
-                      true,
-                    );
-                _buyerController.clear();
-                _quantityController.clear();
-              }
-            },
+            onPressed: () => _recordSale(context),
             icon: Icon(Icons.add),
             label: Text("Record Sale"),
           ),
@@ -393,7 +380,7 @@ class SaleScreen extends StatelessWidget {
                       child: ListTile(
                         title: Text("${sale.buyer} bought ${product.name}"),
                         subtitle: Text(
-                            "Quantity: ${sale.quantity}, Amount: \$${sale.amount.toStringAsFixed(2)}"),
+                            "Quantity: ${sale.quantity}, Amount: \₹${sale.amount.toStringAsFixed(2)}"),
                         trailing:
                             Text("${DateFormat.yMd().format(sale.saleDate)}"),
                       ),
@@ -406,6 +393,46 @@ class SaleScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _recordSale(BuildContext context) {
+    final manager = context.read<ProductManager>();
+    final productId = manager.selectedProductId;
+    final buyer = _buyerController.text;
+    final quantity = int.tryParse(_quantityController.text);
+
+    if (productId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please select a product")),
+      );
+      return;
+    }
+
+    if (buyer.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please enter a buyer name")),
+      );
+      return;
+    }
+
+    if (quantity == null || quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please enter a valid quantity")),
+      );
+      return;
+    }
+
+    manager.recordSale(productId, buyer, quantity, true).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Sale recorded successfully")),
+      );
+      _buyerController.clear();
+      _quantityController.clear();
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error recording sale: $error")),
+      );
+    });
   }
 }
 
@@ -432,11 +459,11 @@ class AnalyticsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Total Sales: \$${totalSales.toStringAsFixed(2)}",
+                      Text("Total Sales: \₹${totalSales.toStringAsFixed(2)}",
                           style: Theme.of(context).textTheme.titleMedium),
                       Text("Total Products Sold: $totalProducts",
                           style: Theme.of(context).textTheme.titleMedium),
-                      Text("Profit/Loss: \$${profitOrLoss.toStringAsFixed(2)}",
+                      Text("Profit/Loss: \₹${profitOrLoss.toStringAsFixed(2)}",
                           style: Theme.of(context).textTheme.titleMedium),
                       if (topSellingProduct != null)
                         Text("Top Selling Product: ${topSellingProduct.name}",
@@ -463,7 +490,7 @@ class AnalyticsScreen extends StatelessWidget {
                       child: ListTile(
                         title: Text(product.name),
                         subtitle: Text(
-                            "Total Sales: \$${totalAmount.toStringAsFixed(2)}"),
+                            "Total Sales: \₹${totalAmount.toStringAsFixed(2)}"),
                         trailing: Text("Quantity: $totalQuantity"),
                       ),
                     );

@@ -64,12 +64,13 @@ class ProductManager extends ChangeNotifier {
     );
     final id = await db!.insert('products', product.toMap());
     product = Product(
-        id: id,
-        name: name,
-        rawMaterialId: materialId,
-        count: count,
-        sellingPrice: sellingPrice,
-        createdAt: DateTime.now());
+      id: id,
+      name: name,
+      rawMaterialId: materialId,
+      count: count,
+      sellingPrice: sellingPrice,
+      createdAt: DateTime.now(),
+    );
     _products.add(product);
     notifyListeners();
   }
@@ -88,24 +89,45 @@ class ProductManager extends ChangeNotifier {
       isPaid: isPaid,
       saleDate: DateTime.now(),
     );
-    final id = await db!.insert('sales', sale.toMap());
-    sale = Sale(
+    try {
+      final id = await db!.insert('sales', sale.toMap());
+      sale = Sale(
         id: id,
         productId: productId,
         buyer: buyer,
         quantity: quantity,
         amount: amount,
         isPaid: isPaid,
-        saleDate: DateTime.now());
-    _sales.add(sale);
-    notifyListeners();
+        saleDate: DateTime.now(),
+      );
+      _sales.add(sale);
+
+      // Update product count
+      final updatedProduct = Product(
+        id: product.id,
+        name: product.name,
+        rawMaterialId: product.rawMaterialId,
+        count: product.count - quantity,
+        sellingPrice: product.sellingPrice,
+        createdAt: product.createdAt,
+      );
+      await db.update('products', updatedProduct.toMap(),
+          where: 'id = ?', whereArgs: [productId]);
+      final index = _products.indexWhere((p) => p.id == productId);
+      _products[index] = updatedProduct;
+
+      notifyListeners();
+    } catch (e) {
+      print('Error recording sale: $e');
+      rethrow; // Re-throw the error so it can be caught and displayed in the UI
+    }
   }
 
   double calculateProfitOrLoss() {
     double totalCost = _products.fold(0, (sum, product) {
       RawMaterial material =
           _rawMaterials.firstWhere((m) => m.id == product.rawMaterialId);
-      return sum + material.cost * product.count;
+      return sum + material.cost;
     });
 
     double totalSales = _sales.fold(0, (sum, sale) => sum + sale.amount);
