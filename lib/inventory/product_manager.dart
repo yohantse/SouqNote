@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'db_helper.dart';
-import 'models.dart';
+import '../db_helper.dart';
+import '../models/models.dart';
 
 class ProductManager extends ChangeNotifier {
   List<RawMaterial> _rawMaterials = [];
