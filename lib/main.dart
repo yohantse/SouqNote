@@ -10,7 +10,15 @@ import 'theme_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DBHelper().database;
-  runApp(const SLRApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ProductManager()),
+      ],
+      child: const SLRApp(),
+    ),
+  );
 }
 
 class SLRApp extends StatelessWidget {
@@ -18,52 +26,22 @@ class SLRApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      builder: (context, child) {
-        final themeProvider = Provider.of<ThemeProvider>(context);
-
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'SLR - Sales and Inventory Tracker',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            brightness: Brightness.light,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
-          darkTheme: ThemeData(
-            primarySwatch: Colors.blue,
-            brightness: Brightness.dark,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
-          themeMode: themeProvider.themeMode,
-          home: HomeScreen(),
-        );
-      },
-    );
-  }
-}
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ProductManager(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'SLR - Sales and Inventory Tracker',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          brightness: Brightness.light,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        darkTheme: ThemeData(
-          primarySwatch: Colors.blue,
-          brightness: Brightness.dark,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        themeMode: ThemeMode.system,
-        home: HomeScreen(),
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'SouqNote',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        brightness: Brightness.light,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      darkTheme: ThemeData(
+        primarySwatch: Colors.blue,
+        brightness: Brightness.dark,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      themeMode: themeProvider.themeMode,
+      home: const HomeScreen(),
     );
   }
 }
