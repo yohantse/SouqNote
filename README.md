@@ -1,91 +1,77 @@
 
-# Simple_Sales
+# SouqNote
 
-   A simple and intuitive Flutter application designed for managing the sales and inventory of a small business. This app allows users to efficiently track raw materials, manage product inventory, record sales, and analyze profits or losses. Ideal for small businesses or personal use where tracking sales and inventory is essential.
+   SouqNote is a modern, intuitive Flutter application designed for small and medium-sized businesses to manage sales, inventory, and financial performance efficiently. Built with scalability in mind, SouqNote streamlines operational workflows while providing actionable insights, empowering merchants to make data-driven decisions.
 
-## Product Sales Manager
+## Overview
 
-### Overview
+SouqNote is a comprehensive mobile solution for merchants, shop owners, and entrepreneurs who want a lightweight but powerful platform to oversee their business operations. From inventory management to sales tracking and analytics, SouqNote centralizes critical business functions in a clean and user-friendly interface.
 
-The **Product Sales Manager** is a Flutter application designed for managing sales and inventory for small businesses or personal use. It provides an easy-to-use interface for tracking raw materials, managing products, recording sales, and analyzing profits or losses. This tool is ideal for entrepreneurs or small business owners looking to streamline their sales and inventory management.
+## Key Features
 
-### Features
+### Intelligent Inventory Management
+   - Add, categorize, and track products and raw materials
+   - Real-time stock updates with low-stock alerts
+### Sales Management
+   - Record transactions with detailed customer information
+   - Monitor sales trends over daily, weekly, and monthly periods
+### Advanced Analytics & Reporting
+   - Visualize profit/loss summaries
+   - Export financial data for accounting and audits
 
-- **Raw Material Management**: Add and track raw materials, including their names and costs.
-- **Product Management**: Manage products with details such as name, count, and selling price.
-- **Sales Recording**: Record sales transactions, including buyer information, sale amount, and date of sale.
-- **Analytics**: View profit or loss summaries based on recorded sales and inventory costs.
-- **Responsive Design**: Designed for a smooth experience on Android devices and emulators.
+### Merchant Dashboard
+   - Quick overview of revenue, best-selling products, and stock alerts
+   - Key performance indicators at a glance
 
-### Screenshots
+### User Experience Focused
+   - Responsive, clean UI optimized for mobile devices
+   - Intuitive navigation with bottom tabs or drawer menu
 
-![Home Screen](assets/screenshots/home_screen.png)
-![Raw Materials](assets/screenshots/raw_materials.png)
-![Products](assets/screenshots/products.png)
-![Sales](assets/screenshots/sales.png)
-![Analytics](assets/screenshots/analytics.png)
+## Screenshots
 
-### Installation
+(Add screenshots here)
 
-1. **Clone the Repository:**
+## Installation
 
-   ```bash
-   git clone https://github.com/yourusername/product-sales-manager.git
-   cd product-sales-manager
-   ```
+### Clone the Repository
 
-2. **Install Dependencies:**
+git clone https://github.com/yohantse/SouqNote.git
+cd SouqNote
 
-   Ensure you have Flutter installed. Run:
+### Install Dependencies
 
-   ```bash
-   flutter pub get
-   ```
+Ensure Flutter is installed. Then run:
 
-3. **Run the Application:**
+flutter pub get
 
-   Connect an Android device or start an emulator, then execute:
 
-   ```bash
-   flutter run
-   ```
+### Run the Application
 
-### Usage
+Connect an Android device or launch an emulator, then execute:
 
-1. **Raw Materials**: Navigate to the "Materials" tab to add and manage raw materials.
-2. **Products**: Use the "Products" tab to manage products, including their inventory and pricing.
-3. **Sales**: Record sales under the "Sales" tab, specifying the product, buyer, and sale amount.
-4. **Analytics**: View financial summaries in the "Analytics" tab to track profit and loss.
+flutter run
 
-### Contributing
+## Usage
 
-This project is intended for personal use and is not currently seeking contributions. However, you are welcome to fork the repository and make modifications to suit your needs.
+Dashboard – Monitor key metrics and inventory alerts at a glance
 
-### License
+Inventory – Manage products and raw materials efficiently
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Sales – Record transactions, track buyers, and monitor revenue
 
-### Contact
+Reports – Analyze business performance and generate financial summaries
 
-For any questions or feedback, please contact me at [aanandab44@gmail.com](mailto:aanandab44@gmail.com).
+Settings – Configure merchant profile, backup data, and customize app preferences
 
----
+## Contributing
 
-=======
-# aadhisree
+SouqNote is actively maintained as a scalable, production-ready solution. While it is currently a personal project, contributions are welcome through pull requests, feature suggestions, or bug reports.
 
-A new Flutter project.
+## License
 
-## Getting Started
+SouqNote is licensed under the MIT License. See the LICENSE file for details.
 
-This project is a starting point for a Flutter application.
+## Contact
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
->>>>>>> a7f3586 (first)
+For questions, feedback, or partnership inquiries:
+GitHub: yohantse
