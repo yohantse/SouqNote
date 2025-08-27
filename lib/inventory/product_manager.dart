@@ -52,7 +52,7 @@ class ProductManager extends ChangeNotifier {
   }
 
   Future<void> addProduct(
-      String name, int materialId, int count, double sellingPrice) async {
+      String name, int materialId, int count, double sellingPrice, double cost) async {
     final db = await DBHelper().database;
     var product = Product(
       id: 0,
@@ -60,6 +60,7 @@ class ProductManager extends ChangeNotifier {
       rawMaterialId: materialId,
       count: count,
       sellingPrice: sellingPrice,
+      cost: cost,
       createdAt: DateTime.now(),
     );
     final id = await db!.insert('products', product.toMap());
@@ -69,6 +70,7 @@ class ProductManager extends ChangeNotifier {
       rawMaterialId: materialId,
       count: count,
       sellingPrice: sellingPrice,
+      cost: cost,
       createdAt: DateTime.now(),
     );
     _products.add(product);
@@ -109,12 +111,15 @@ class ProductManager extends ChangeNotifier {
         rawMaterialId: product.rawMaterialId,
         count: product.count - quantity,
         sellingPrice: product.sellingPrice,
+        cost: product.cost,      
         createdAt: product.createdAt,
       );
       await db.update('products', updatedProduct.toMap(),
           where: 'id = ?', whereArgs: [productId]);
       final index = _products.indexWhere((p) => p.id == productId);
-      _products[index] = updatedProduct;
+      if (index != -1) {
+        _products[index] = updatedProduct;
+      }
 
       notifyListeners();
     } catch (e) {
@@ -143,7 +148,7 @@ class ProductManager extends ChangeNotifier {
   }
 
   Future<void> updateProduct(int id,
-      {String? name, int? count, double? sellingPrice}) async {
+      {String? name, int? count, double? sellingPrice, double? cost}) async {
     final db = await DBHelper().database;
     final index = _products.indexWhere((product) => product.id == id);
     if (index != -1) {
@@ -153,6 +158,7 @@ class ProductManager extends ChangeNotifier {
         rawMaterialId: _products[index].rawMaterialId,
         count: count ?? _products[index].count,
         sellingPrice: sellingPrice ?? _products[index].sellingPrice,
+        cost: cost ?? _products[index].cost,
         createdAt: _products[index].createdAt,
       );
       await db!.update('products', updatedProduct.toMap(),

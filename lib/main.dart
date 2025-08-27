@@ -232,6 +232,7 @@ class ProductScreen extends StatelessWidget {
   final TextEditingController _productNameController = TextEditingController();
   final TextEditingController _productCountController = TextEditingController();
   final TextEditingController _sellingPriceController = TextEditingController();
+  final TextEditingController _costController = TextEditingController();
 
   ProductScreen({super.key});
 
@@ -317,22 +318,41 @@ class ProductScreen extends StatelessWidget {
             ),
             keyboardType: TextInputType.number,
           ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _costController,
+            decoration: InputDecoration(
+              labelText: "Cost",
+              hintText: "Enter cost",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+          ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
               String name = _productNameController.text;
               int count = int.tryParse(_productCountController.text) ?? 0;
               double price = double.tryParse(_sellingPriceController.text) ?? 0;
-              if (name.isNotEmpty && count > 0 && price > 0) {
+              double cost = double.tryParse(_costController.text) ?? 0;
+              if (name.isNotEmpty && count > 0 && price > 0 && cost > 0) {
                 context.read<ProductManager>().addProduct(
                       name,
                       context.read<ProductManager>().selectedMaterialId!,
                       count,
                       price,
+                      cost,
                     );
                 _productNameController.clear();
                 _productCountController.clear();
                 _sellingPriceController.clear();
+                _costController.clear();
               }
             },
             icon: const Icon(Icons.add),
@@ -351,36 +371,32 @@ class ProductScreen extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  style: const TextStyle(
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8.0),
-                                Text(
-                                  "Count: ${product.count}, Price: ₹${product.sellingPrice.toStringAsFixed(2)}",
-                                  style: const TextStyle(
-                                    fontSize: 16.0,
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              product.name,
+                              style: const TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () {
-                                _showEditProductDialog(context, product);
-                              },
-                            ),
+                            const SizedBox(height: 8.0),
+                            Text("Price: ₹${product.sellingPrice.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                )),
+                            Text("Cost: ₹${product.cost.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                )),
+                            Text("Stock: ${product.count}",
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                )),
                           ],
                         ),
+                        
                       ),
                     );
                   },
@@ -418,9 +434,14 @@ class ProductScreen extends StatelessWidget {
                 decoration: const InputDecoration(labelText: "Count"),
                 keyboardType: TextInputType.number,
               ),
-              TextField(
+              TextFormField(
                 controller: priceController,
                 decoration: const InputDecoration(labelText: "Selling Price"),
+                keyboardType: TextInputType.number,
+              ),
+              TextFormField(
+                controller: costController,
+                decoration: const InputDecoration(labelText: "Cost"),
                 keyboardType: TextInputType.number,
               ),
             ],
@@ -433,12 +454,18 @@ class ProductScreen extends StatelessWidget {
             TextButton(
               child: const Text("Save"),
               onPressed: () {
+                double? parsedPrice = double.tryParse(priceController.text);
+                double? parsedCost = double.tryParse(costController.text);
+                int? parsedCount = int.tryParse(countController.text);
+
                 context.read<ProductManager>().updateProduct(
-                      product.id,
-                      name: nameController.text,
-                      count: int.tryParse(countController.text),
-                      sellingPrice: double.tryParse(priceController.text),
-                    );
+                  product.id,
+                  name: nameController.text,
+                  count: parsedCount,
+                  sellingPrice: parsedPrice,
+                  cost: parsedCost,
+                );
+
                 Navigator.of(context).pop();
               },
             ),

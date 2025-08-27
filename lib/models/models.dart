@@ -24,6 +24,7 @@ class Product {
   final int rawMaterialId;
   final int count;
   final double sellingPrice;
+  final double cost;
   final DateTime createdAt;
 
   Product({
@@ -32,6 +33,7 @@ class Product {
     required this.rawMaterialId,
     required this.count,
     required this.sellingPrice,
+    required this.cost,
     required this.createdAt,
   });
 
@@ -42,6 +44,7 @@ class Product {
       rawMaterialId: map['raw_material_id'],
       count: map['count'],
       sellingPrice: map['selling_price'],
+      cost: map['cost'],
       createdAt: DateTime.parse(map['created_at']),
     );
   }
@@ -52,6 +55,7 @@ class Product {
       'raw_material_id': rawMaterialId,
       'count': count,
       'selling_price': sellingPrice,
+      'cost': cost,
       'created_at': createdAt.toIso8601String(),
     };
   }
