@@ -1,7 +1,6 @@
-
 # SouqNote
 
-   SouqNote is a modern, intuitive Flutter application designed for small and medium-sized businesses to manage sales, inventory, and financial performance efficiently. Built with scalability in mind, SouqNote streamlines operational workflows while providing actionable insights, empowering merchants to make data-driven decisions.
+SouqNote is a modern, intuitive Flutter application designed for small and medium-sized businesses to manage sales, inventory, and financial performance efficiently. Built with scalability in mind, SouqNote streamlines operational workflows while providing actionable insights, empowering merchants to make data-driven decisions.
 
 ## Overview
 
@@ -18,15 +17,12 @@ SouqNote is a comprehensive mobile solution for merchants, shop owners, and entr
 ### Advanced Analytics & Reporting
    - Visualize profit/loss summaries
    - Export financial data for accounting and audits
-
 ### Merchant Dashboard
    - Quick overview of revenue, best-selling products, and stock alerts
    - Key performance indicators at a glance
-
 ### User Experience Focused
    - Responsive, clean UI optimized for mobile devices
    - Intuitive navigation with bottom tabs or drawer menu
-
 ## Screenshots
 
 (Add screenshots here)

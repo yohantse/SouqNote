@@ -57,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _widgetOptions = <Widget>[
-    RawMaterialScreen(),
     ProductScreen(),
     SaleScreen(),
     AnalyticsScreen(),
@@ -82,10 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Materials',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.inventory),
             label: 'Products',
           ),
@@ -97,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.analytics),
             label: 'Analytics',
           ),
-           BottomNavigationBarItem(
+          BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
@@ -106,123 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-      ),
-    );
-  }
-}
-
-class RawMaterialScreen extends StatelessWidget {
-  final TextEditingController _materialNameController = TextEditingController();
-  final TextEditingController _materialCostController = TextEditingController();
-
-  RawMaterialScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Raw Materials", style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _materialNameController,
-            decoration: InputDecoration(
-              labelText: "Material Name",
-              hintText: "Enter material name",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _materialCostController,
-            decoration: InputDecoration(
-              labelText: "Material Cost",
-              hintText: "Enter material cost",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () {
-              String name = _materialNameController.text;
-              double cost = double.tryParse(_materialCostController.text) ?? 0;
-              if (name.isNotEmpty && cost > 0) {
-                context.read<ProductManager>().addRawMaterial(name, cost);
-                _materialNameController.clear();
-                _materialCostController.clear();
-              }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text("Add Raw Material"),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Consumer<ProductManager>(
-              builder: (context, manager, child) {
-                return ListView.builder(
-                  itemCount: manager.rawMaterials.length,
-                  itemBuilder: (context, index) {
-                    final material = manager.rawMaterials[index];
-                    return Card(
-                      elevation: 4.0,
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  material.name,
-                                  style: TextStyle(
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8.0),
-                                Text(
-                                  "Cost: ₹${material.cost.toStringAsFixed(2)}",
-                                  style: TextStyle(
-                                    fontSize: 16.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                context
-                                    .read<ProductManager>()
-                                    .deleteRawMaterial(material.id);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -245,33 +123,6 @@ class ProductScreen extends StatelessWidget {
         children: [
           Text("Products", style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 16),
-          Consumer<ProductManager>(
-            builder: (context, manager, child) {
-              return DropdownButtonFormField<int>(
-                decoration: InputDecoration(
-                  labelText: "Raw Material",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                value: manager.selectedMaterialId,
-                items: manager.rawMaterials.map((material) {
-                  return DropdownMenuItem<int>(
-                    value: material.id,
-                    child: Text(material.name),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  manager.setSelectedMaterialId(value!);
-                },
-              );
-            },
-          ),
-          const SizedBox(height: 8),
           TextFormField(
             controller: _productNameController,
             decoration: InputDecoration(
@@ -344,7 +195,6 @@ class ProductScreen extends StatelessWidget {
               if (name.isNotEmpty && count > 0 && price > 0 && cost > 0) {
                 context.read<ProductManager>().addProduct(
                       name,
-                      context.read<ProductManager>().selectedMaterialId!,
                       count,
                       price,
                       cost,
@@ -396,7 +246,6 @@ class ProductScreen extends StatelessWidget {
                                 )),
                           ],
                         ),
-                        
                       ),
                     );
                   },
@@ -409,74 +258,72 @@ class ProductScreen extends StatelessWidget {
     );
   }
 
-  void _showEditProductDialog(BuildContext context, Product product) {
-    final TextEditingController nameController =
-        TextEditingController(text: product.name);
-    final TextEditingController countController =
-        TextEditingController(text: product.count.toString());
-    final TextEditingController priceController =
-        TextEditingController(text: product.sellingPrice.toString());
+   void _showEditProductDialog(BuildContext context, Product product) {
+  final TextEditingController nameController = TextEditingController(text: product.name);
+  final TextEditingController countController = TextEditingController(text: product.count.toString());
+  final TextEditingController priceController = TextEditingController(text: product.sellingPrice.toString());
+  final TextEditingController costController = TextEditingController(text: product.cost.toString());
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Edit Product"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: "Product Name"),
-              ),
-              TextField(
-                controller: countController,
-                decoration: const InputDecoration(labelText: "Count"),
-                keyboardType: TextInputType.number,
-              ),
-              TextFormField(
-                controller: priceController,
-                decoration: const InputDecoration(labelText: "Selling Price"),
-                keyboardType: TextInputType.number,
-              ),
-              TextFormField(
-                controller: costController,
-                decoration: const InputDecoration(labelText: "Cost"),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () => Navigator.of(context).pop(),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text("Edit Product"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: "Product Name"),
             ),
-            TextButton(
-              child: const Text("Save"),
-              onPressed: () {
-                double? parsedPrice = double.tryParse(priceController.text);
-                double? parsedCost = double.tryParse(costController.text);
-                int? parsedCount = int.tryParse(countController.text);
-
-                context.read<ProductManager>().updateProduct(
-                  product.id,
-                  name: nameController.text,
-                  count: parsedCount,
-                  sellingPrice: parsedPrice,
-                  cost: parsedCost,
-                );
-
-                Navigator.of(context).pop();
-              },
+            TextFormField(
+              controller: countController,
+              decoration: const InputDecoration(labelText: "Count"),
+              keyboardType: TextInputType.number,
+            ),
+            TextFormField(
+              controller: priceController,
+              decoration: const InputDecoration(labelText: "Selling Price"),
+              keyboardType: TextInputType.number,
+            ),
+            TextFormField(
+              controller: costController,
+              decoration: const InputDecoration(labelText: "Cost"),
+              keyboardType: TextInputType.number,
             ),
           ],
-        );
-      },
-    );
-  }
-}
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: const Text("Save"),
+            onPressed: () {
+              // Parse values safely
+              final parsedCount = int.tryParse(countController.text) ?? product.count;
+              final parsedPrice = double.tryParse(priceController.text) ?? product.sellingPrice;
+              final parsedCost = double.tryParse(costController.text) ?? product.cost;
 
-class SaleScreen extends StatelessWidget {
+              context.read<ProductManager>().updateProduct(
+                    product.id!,
+                    name: nameController.text,
+                    count: parsedCount,
+                    sellingPrice: parsedPrice,
+                    cost: parsedCost,
+                  );
+
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+}
+class SaleScreen extends StatelessWidget { 
   final TextEditingController _buyerController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
 
@@ -695,7 +542,7 @@ class AnalyticsScreen extends StatelessWidget {
                   itemCount: manager.products.length,
                   itemBuilder: (context, index) {
                     final product = manager.products[index];
-                    final sales = manager.getSalesForProduct(product.id);
+                    final sales = manager.getSalesForProduct(product.id!);
                     final totalAmount =
                         sales.fold<double>(0, (sum, sale) => sum + sale.amount);
                     final totalQuantity =

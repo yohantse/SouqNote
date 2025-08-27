@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
-import '../db_helper.dart';
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
+import 'dart:io';
 
 class ProductManager extends ChangeNotifier {
-  List<RawMaterial> _rawMaterials = [];
   List<Product> _products = [];
   List<Sale> _sales = [];
   int? _selectedProductId;
-  int? _selectedMaterialId;
+  static Isar? isar; // Make isar static
 
-  List<RawMaterial> get rawMaterials => _rawMaterials;
   List<Product> get products => _products;
   List<Sale> get sales => _sales;
   int? get selectedProductId => _selectedProductId;
-  int? get selectedMaterialId => _selectedMaterialId;
 
   ProductManager() {
-    _loadData();
+    openIsar();
   }
 
+  Future<void> openIsar() async {
+    final dir = await getApplicationDocumentsDirectory();
+    isar = await Isar.open(
+      [ProductSchema, SaleSchema],
+      directory: dir.path,
+      inspector: true,
+    );
+    await _loadData();
+  }
+
+
   Future<void> _loadData() async {
-    final db = await DBHelper().database;
-    final rawMaterialsData = await db!.query('raw_materials');
-    final productsData = await db.query('products');
-    final salesData = await db.query('sales');
-
-    _rawMaterials =
-        rawMaterialsData.map((e) => RawMaterial.fromMap(e)).toList();
-    _products = productsData.map((e) => Product.fromMap(e)).toList();
-    _sales = salesData.map((e) => Sale.fromMap(e)).toList();
-
+    if (isar == null) return;
+    _products = await isar!.products.where().findAll();
+    _sales = await isar!.sales.where().findAll();
     notifyListeners();
   }
 
@@ -38,52 +41,31 @@ class ProductManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSelectedMaterialId(int id) {
-    _selectedMaterialId = id;
-    notifyListeners();
-  }
-
-  Future<void> addRawMaterial(String name, double cost) async {
-    final db = await DBHelper().database;
-    final id = await db!.insert('raw_materials', {'name': name, 'cost': cost});
-    final rawMaterial = RawMaterial(id: id, name: name, cost: cost);
-    _rawMaterials.add(rawMaterial);
-    notifyListeners();
-  }
-
   Future<void> addProduct(
-      String name, int materialId, int count, double sellingPrice, double cost) async {
-    final db = await DBHelper().database;
+      String name, int count, double sellingPrice, double cost) async {
+    if (isar == null) return;
     var product = Product(
-      id: 0,
+      id: Isar.autoIncrement,
       name: name,
-      rawMaterialId: materialId,
       count: count,
       sellingPrice: sellingPrice,
       cost: cost,
       createdAt: DateTime.now(),
     );
-    final id = await db!.insert('products', product.toMap());
-    product = Product(
-      id: id,
-      name: name,
-      rawMaterialId: materialId,
-      count: count,
-      sellingPrice: sellingPrice,
-      cost: cost,
-      createdAt: DateTime.now(),
-    );
+    await isar!.writeTxn(() async {
+      await isar!.products.put(product);
+    });
     _products.add(product);
     notifyListeners();
   }
 
   Future<void> recordSale(
       int productId, String buyer, int quantity, bool isPaid) async {
-    final db = await DBHelper().database;
+    if (isar == null) return;
     final product = _products.firstWhere((p) => p.id == productId);
     final amount = product.sellingPrice * quantity;
     var sale = Sale(
-      id: 0,
+      id: Isar.autoIncrement,
       productId: productId,
       buyer: buyer,
       quantity: quantity,
@@ -92,30 +74,17 @@ class ProductManager extends ChangeNotifier {
       saleDate: DateTime.now(),
     );
     try {
-      final id = await db!.insert('sales', sale.toMap());
-      sale = Sale(
-        id: id,
-        productId: productId,
-        buyer: buyer,
-        quantity: quantity,
-        amount: amount,
-        isPaid: isPaid,
-        saleDate: DateTime.now(),
-      );
+      await isar!.writeTxn(() async {
+        await isar!.sales.put(sale);
+      });
       _sales.add(sale);
 
       // Update product count
-      final updatedProduct = Product(
-        id: product.id,
-        name: product.name,
-        rawMaterialId: product.rawMaterialId,
-        count: product.count - quantity,
-        sellingPrice: product.sellingPrice,
-        cost: product.cost,      
-        createdAt: product.createdAt,
-      );
-      await db.update('products', updatedProduct.toMap(),
-          where: 'id = ?', whereArgs: [productId]);
+      final updatedProduct = product
+      ..count = product.count - quantity;
+      await isar!.writeTxn(() async {
+        await isar!.products.put(updatedProduct);
+      });
       final index = _products.indexWhere((p) => p.id == productId);
       if (index != -1) {
         _products[index] = updatedProduct;
@@ -129,44 +98,47 @@ class ProductManager extends ChangeNotifier {
   }
 
   double calculateProfitOrLoss() {
-    double totalCost = _products.fold(0, (sum, product) {
-      RawMaterial material =
-          _rawMaterials.firstWhere((m) => m.id == product.rawMaterialId);
-      return sum + material.cost;
-    });
-
-    double totalSales = _sales.fold(0, (sum, sale) => sum + sale.amount);
-
-    return totalSales - totalCost;
-  }
-
-  Future<void> deleteRawMaterial(int id) async {
-    final db = await DBHelper().database;
-    await db!.delete('raw_materials', where: 'id = ?', whereArgs: [id]);
-    _rawMaterials.removeWhere((material) => material.id == id);
-    notifyListeners();
-  }
-
-  Future<void> updateProduct(int id,
-      {String? name, int? count, double? sellingPrice, double? cost}) async {
-    final db = await DBHelper().database;
-    final index = _products.indexWhere((product) => product.id == id);
-    if (index != -1) {
-      final updatedProduct = Product(
-        id: _products[index].id,
-        name: name ?? _products[index].name,
-        rawMaterialId: _products[index].rawMaterialId,
-        count: count ?? _products[index].count,
-        sellingPrice: sellingPrice ?? _products[index].sellingPrice,
-        cost: cost ?? _products[index].cost,
-        createdAt: _products[index].createdAt,
-      );
-      await db!.update('products', updatedProduct.toMap(),
-          where: 'id = ?', whereArgs: [id]);
-      _products[index] = updatedProduct;
-      notifyListeners();
+    double totalRevenue = _sales.fold(0, (sum, sale) => sum + sale.amount);
+    double totalCostOfSoldItems = 0;
+    for (var sale in _sales) {
+      final product = _products.firstWhere((p) => p.id == sale.productId);
+      totalCostOfSoldItems += product.cost * sale.quantity;
     }
+    return totalRevenue - totalCostOfSoldItems;
   }
+
+
+  Future<void> updateProduct(
+  int id, {
+  required String name,
+  required int count,
+  required double sellingPrice,
+  required double cost,
+}) async {
+  if (isar == null) return;
+  
+  final product = _products.firstWhere((p) => p.id == id);
+
+  // Update product fields
+  product
+    ..name = name
+    ..count = count
+    ..sellingPrice = sellingPrice
+    ..cost = cost;
+
+  await isar!.writeTxn(() async {
+    await isar!.products.put(product);
+  });
+
+  // Update local list
+  final index = _products.indexWhere((p) => p.id == id);
+  if (index != -1) {
+    _products[index] = product;
+  }
+
+  notifyListeners();
+}
+
 
   List<Sale> getSalesForProduct(int productId) {
     return _sales.where((sale) => sale.productId == productId).toList();
