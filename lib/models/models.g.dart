@@ -874,23 +874,33 @@ const SaleSchema = CollectionSchema(
       name: r'buyer',
       type: IsarType.string,
     ),
-    r'isPaid': PropertySchema(
+    r'creditGiven': PropertySchema(
       id: 2,
+      name: r'creditGiven',
+      type: IsarType.double,
+    ),
+    r'creditReceived': PropertySchema(
+      id: 3,
+      name: r'creditReceived',
+      type: IsarType.double,
+    ),
+    r'isPaid': PropertySchema(
+      id: 4,
       name: r'isPaid',
       type: IsarType.bool,
     ),
     r'productId': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'productId',
       type: IsarType.long,
     ),
     r'quantity': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'quantity',
       type: IsarType.long,
     ),
     r'saleDate': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'saleDate',
       type: IsarType.dateTime,
     )
@@ -927,10 +937,12 @@ void _saleSerialize(
 ) {
   writer.writeDouble(offsets[0], object.amount);
   writer.writeString(offsets[1], object.buyer);
-  writer.writeBool(offsets[2], object.isPaid);
-  writer.writeLong(offsets[3], object.productId);
-  writer.writeLong(offsets[4], object.quantity);
-  writer.writeDateTime(offsets[5], object.saleDate);
+  writer.writeDouble(offsets[2], object.creditGiven);
+  writer.writeDouble(offsets[3], object.creditReceived);
+  writer.writeBool(offsets[4], object.isPaid);
+  writer.writeLong(offsets[5], object.productId);
+  writer.writeLong(offsets[6], object.quantity);
+  writer.writeDateTime(offsets[7], object.saleDate);
 }
 
 Sale _saleDeserialize(
@@ -942,11 +954,13 @@ Sale _saleDeserialize(
   final object = Sale(
     amount: reader.readDouble(offsets[0]),
     buyer: reader.readString(offsets[1]),
+    creditGiven: reader.readDoubleOrNull(offsets[2]),
+    creditReceived: reader.readDoubleOrNull(offsets[3]),
     id: id,
-    isPaid: reader.readBool(offsets[2]),
-    productId: reader.readLong(offsets[3]),
-    quantity: reader.readLong(offsets[4]),
-    saleDate: reader.readDateTime(offsets[5]),
+    isPaid: reader.readBool(offsets[4]),
+    productId: reader.readLong(offsets[5]),
+    quantity: reader.readLong(offsets[6]),
+    saleDate: reader.readDateTime(offsets[7]),
   );
   return object;
 }
@@ -963,12 +977,16 @@ P _saleDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
+      return (reader.readLong(offset)) as P;
+    case 6:
+      return (reader.readLong(offset)) as P;
+    case 7:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1253,6 +1271,162 @@ extension SaleQueryFilter on QueryBuilder<Sale, Sale, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditGivenIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'creditGiven',
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditGivenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'creditGiven',
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditGivenEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'creditGiven',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditGivenGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'creditGiven',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditGivenLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'creditGiven',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditGivenBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'creditGiven',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditReceivedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'creditReceived',
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditReceivedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'creditReceived',
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditReceivedEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'creditReceived',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditReceivedGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'creditReceived',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditReceivedLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'creditReceived',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterFilterCondition> creditReceivedBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'creditReceived',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<Sale, Sale, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1517,6 +1691,30 @@ extension SaleQuerySortBy on QueryBuilder<Sale, Sale, QSortBy> {
     });
   }
 
+  QueryBuilder<Sale, Sale, QAfterSortBy> sortByCreditGiven() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditGiven', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterSortBy> sortByCreditGivenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditGiven', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterSortBy> sortByCreditReceived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditReceived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterSortBy> sortByCreditReceivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditReceived', Sort.desc);
+    });
+  }
+
   QueryBuilder<Sale, Sale, QAfterSortBy> sortByIsPaid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isPaid', Sort.asc);
@@ -1588,6 +1786,30 @@ extension SaleQuerySortThenBy on QueryBuilder<Sale, Sale, QSortThenBy> {
   QueryBuilder<Sale, Sale, QAfterSortBy> thenByBuyerDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'buyer', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterSortBy> thenByCreditGiven() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditGiven', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterSortBy> thenByCreditGivenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditGiven', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterSortBy> thenByCreditReceived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditReceived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QAfterSortBy> thenByCreditReceivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditReceived', Sort.desc);
     });
   }
 
@@ -1666,6 +1888,18 @@ extension SaleQueryWhereDistinct on QueryBuilder<Sale, Sale, QDistinct> {
     });
   }
 
+  QueryBuilder<Sale, Sale, QDistinct> distinctByCreditGiven() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'creditGiven');
+    });
+  }
+
+  QueryBuilder<Sale, Sale, QDistinct> distinctByCreditReceived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'creditReceived');
+    });
+  }
+
   QueryBuilder<Sale, Sale, QDistinct> distinctByIsPaid() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isPaid');
@@ -1707,6 +1941,18 @@ extension SaleQueryProperty on QueryBuilder<Sale, Sale, QQueryProperty> {
   QueryBuilder<Sale, String, QQueryOperations> buyerProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'buyer');
+    });
+  }
+
+  QueryBuilder<Sale, double?, QQueryOperations> creditGivenProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'creditGiven');
+    });
+  }
+
+  QueryBuilder<Sale, double?, QQueryOperations> creditReceivedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'creditReceived');
     });
   }
 

@@ -106,13 +106,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class ProductScreen extends StatelessWidget {
+class ProductScreen extends StatefulWidget {
+  ProductScreen({super.key});
+
+  @override
+  State<ProductScreen> createState() => _ProductScreenState();
+}
+
+class _ProductScreenState extends State<ProductScreen> {
   final TextEditingController _productNameController = TextEditingController();
   final TextEditingController _productCountController = TextEditingController();
   final TextEditingController _sellingPriceController = TextEditingController();
   final TextEditingController _costController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
-  ProductScreen({super.key});
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Product> _getFilteredProducts(List<Product> products) {
+    if (_searchQuery.isEmpty) {
+      return products;
+    }
+    return products
+        .where((product) =>
+            product.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,14 +242,32 @@ class ProductScreen extends StatelessWidget {
             icon: const Icon(Icons.add),
             label: const Text("Add Product"),
           ),
+           const SizedBox(height: 8),
+             TextFormField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              labelText: "Search",
+              hintText: "Search product name",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Reduced padding
+            ),
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: Consumer<ProductManager>(
               builder: (context, manager, child) {
+                List<Product> filteredProducts =
+                    _getFilteredProducts(List.from(manager.products));
                 return ListView.builder(
-                  itemCount: manager.products.length,
+                  itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
-                    final product = manager.products[index];
+                    final product = filteredProducts[index];
                     return Card(
                       elevation: 4.0,
                       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -253,81 +305,97 @@ class ProductScreen extends StatelessWidget {
               },
             ),
           ),
+          const SizedBox(height: 8),
+          
         ],
       ),
     );
   }
 
-   void _showEditProductDialog(BuildContext context, Product product) {
-  final TextEditingController nameController = TextEditingController(text: product.name);
-  final TextEditingController countController = TextEditingController(text: product.count.toString());
-  final TextEditingController priceController = TextEditingController(text: product.sellingPrice.toString());
-  final TextEditingController costController = TextEditingController(text: product.cost.toString());
+  void _showEditProductDialog(BuildContext context, Product product) {
+    final TextEditingController nameController =
+        TextEditingController(text: product.name);
+    final TextEditingController countController =
+        TextEditingController(text: product.count.toString());
+    final TextEditingController priceController =
+        TextEditingController(text: product.sellingPrice.toString());
+    final TextEditingController costController =
+        TextEditingController(text: product.cost.toString());
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text("Edit Product"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: "Product Name"),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Edit Product"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: "Product Name"),
+              ),
+              TextFormField(
+                controller: countController,
+                decoration: const InputDecoration(labelText: "Count"),
+                keyboardType: TextInputType.number,
+              ),
+              TextFormField(
+                controller: priceController,
+                decoration: const InputDecoration(labelText: "Selling Price"),
+                keyboardType: TextInputType.number,
+              ),
+              TextFormField(
+                controller: costController,
+                decoration: const InputDecoration(labelText: "Cost"),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-            TextFormField(
-              controller: countController,
-              decoration: const InputDecoration(labelText: "Count"),
-              keyboardType: TextInputType.number,
-            ),
-            TextFormField(
-              controller: priceController,
-              decoration: const InputDecoration(labelText: "Selling Price"),
-              keyboardType: TextInputType.number,
-            ),
-            TextFormField(
-              controller: costController,
-              decoration: const InputDecoration(labelText: "Cost"),
-              keyboardType: TextInputType.number,
+            TextButton(
+              child: const Text("Save"),
+              onPressed: () {
+                // Parse values safely
+                final parsedCount =
+                    int.tryParse(countController.text) ?? product.count;
+                final parsedPrice =
+                    double.tryParse(priceController.text) ?? product.sellingPrice;
+                final parsedCost =
+                    double.tryParse(costController.text) ?? product.cost;
+
+                context.read<ProductManager>().updateProduct(
+                      product.id!,
+                      name: nameController.text,
+                      count: parsedCount,
+                      sellingPrice: parsedPrice,
+                      cost: parsedCost,
+                    );
+
+                Navigator.of(context).pop();
+              },
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: const Text("Save"),
-            onPressed: () {
-              // Parse values safely
-              final parsedCount = int.tryParse(countController.text) ?? product.count;
-              final parsedPrice = double.tryParse(priceController.text) ?? product.sellingPrice;
-              final parsedCost = double.tryParse(costController.text) ?? product.cost;
-
-              context.read<ProductManager>().updateProduct(
-                    product.id!,
-                    name: nameController.text,
-                    count: parsedCount,
-                    sellingPrice: parsedPrice,
-                    cost: parsedCost,
-                  );
-
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
+        );
+      },
+    );
+  }
 }
+class SaleScreen extends StatefulWidget {
+  SaleScreen({super.key});
+
+  @override
+  State<SaleScreen> createState() => _SaleScreenState();
 }
-class SaleScreen extends StatelessWidget { 
+
+class _SaleScreenState extends State<SaleScreen> {
   final TextEditingController _buyerController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
-
-  SaleScreen({super.key});
+  final TextEditingController _creditGivenController = TextEditingController();
+  final TextEditingController _creditReceivedController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -395,6 +463,38 @@ class SaleScreen extends StatelessWidget {
             ),
             keyboardType: TextInputType.number,
           ),
+           const SizedBox(height: 8),
+          TextFormField(
+            controller: _creditGivenController,
+            decoration: InputDecoration(
+              labelText: "Credit Given",
+              hintText: "Enter credit given",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+          ),
+           const SizedBox(height: 8),
+          TextFormField(
+            controller: _creditReceivedController,
+            decoration: InputDecoration(
+              labelText: "Credit Received",
+              hintText: "Enter credit received",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+          ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () => _recordSale(context),
@@ -434,6 +534,13 @@ class SaleScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 8.0),
+                             Text(
+                              "Credit Given: ₹${sale.creditGiven?.toStringAsFixed(2) ?? '0.00'}, Credit Received: ₹${sale.creditReceived?.toStringAsFixed(2) ?? '0.00'}",
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
                             Text(
                               DateFormat.yMd().format(sale.saleDate),
                               style: const TextStyle(
@@ -460,6 +567,8 @@ class SaleScreen extends StatelessWidget {
     final productId = manager.selectedProductId;
     final buyer = _buyerController.text;
     final quantity = int.tryParse(_quantityController.text);
+    final creditGiven = double.tryParse(_creditGivenController.text) ?? 0.0;
+    final creditReceived = double.tryParse(_creditReceivedController.text) ?? 0.0;
 
     if (productId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -482,12 +591,14 @@ class SaleScreen extends StatelessWidget {
       return;
     }
 
-    manager.recordSale(productId, buyer, quantity, true).then((_) {
+    manager.recordSale(productId, buyer, quantity, true, creditGiven: creditGiven, creditReceived: creditReceived).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Sale recorded successfully")),
       );
       _buyerController.clear();
       _quantityController.clear();
+      _creditGivenController.clear();
+      _creditReceivedController.clear();
     }).catchError((error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error recording sale: $error")),
@@ -496,8 +607,67 @@ class SaleScreen extends StatelessWidget {
   }
 }
 
-class AnalyticsScreen extends StatelessWidget {
-  const AnalyticsScreen({super.key});
+class AnalyticsScreen extends StatefulWidget {
+  const AnalyticsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AnalyticsScreen> createState() => _AnalyticsScreenState();
+}
+
+class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  String _selectedTimeFrame = 'all';
+  String _selectedProductFilter = 'name'; // Default filter
+
+  List<Product> _getFilteredProducts(List<Product> products) {
+    switch (_selectedProductFilter) {
+      case 'name':
+        products.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      case 'total_sales':
+        products.sort((a, b) {
+          final salesA = context.read<ProductManager>().getSalesForProduct(a.id!);
+          final totalAmountA = salesA.fold<double>(0, (sum, sale) => sum + sale.amount);
+
+          final salesB = context.read<ProductManager>().getSalesForProduct(b.id!);
+          final totalAmountB = salesB.fold<double>(0, (sum, sale) => sum + sale.amount);
+
+          return totalAmountB.compareTo(totalAmountA);
+        });
+        break;
+      case 'quantity_sold':
+        products.sort((a, b) {
+          final salesA = context.read<ProductManager>().getSalesForProduct(a.id!);
+          final totalQuantityA = salesA.fold<int>(0, (sum, sale) => sum + sale.quantity);
+
+          final salesB = context.read<ProductManager>().getSalesForProduct(b.id!);
+          final totalQuantityB = salesB.fold<int>(0, (sum, sale) => sum + sale.quantity);
+
+          return totalQuantityB.compareTo(totalQuantityA);
+        });
+        break;
+         case 'profit':
+        products.sort((a, b) {
+          final salesA = context.read<ProductManager>().getSalesForProduct(a.id!);
+          double totalProfitA = 0;
+          for (var sale in salesA) {
+            final product = context.read<ProductManager>().products.firstWhere((p) => p.id == sale.productId);
+            totalProfitA += (product.sellingPrice - product.cost) * sale.quantity;
+          }
+
+          final salesB = context.read<ProductManager>().getSalesForProduct(b.id!);
+          double totalProfitB = 0;
+          for (var sale in salesB) {
+           final product = context.read<ProductManager>().products.firstWhere((p) => p.id == sale.productId);
+            totalProfitB += (product.sellingPrice - product.cost) * sale.quantity;
+          }
+
+          return totalProfitB.compareTo(totalProfitA);
+        });
+        break;
+    }
+    return products;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -507,25 +677,69 @@ class AnalyticsScreen extends StatelessWidget {
         builder: (context, manager, child) {
           final totalSales = manager.getTotalSalesAmount();
           final totalProducts = manager.getTotalProductsSold();
-          final profitOrLoss = manager.calculateProfitOrLoss();
+          final profitOrLoss =
+              manager.calculateProfitOrLoss(timeFrame: _selectedTimeFrame);
           final topSellingProduct = manager.getTopSellingProduct();
+          
+          List<Product> filteredProducts = _getFilteredProducts(List.from(manager.products));
+
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Analytics", style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: "Time Frame",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                value: _selectedTimeFrame,
+                items: const [
+                  DropdownMenuItem(
+                    value: 'all',
+                    child: Text("All Time"),
+                  ),
+                  DropdownMenuItem(
+                    value: 'daily',
+                    child: Text("Daily"),
+                  ),
+                  DropdownMenuItem(
+                    value: 'weekly',
+                    child: Text("Weekly"),
+                  ),
+                  DropdownMenuItem(
+                    value: 'monthly',
+                    child: Text("Monthly"),
+                  ),
+                  DropdownMenuItem(
+                    value: 'yearly',
+                    child: Text("Yearly"),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedTimeFrame = value!;
+                  });
+                },
+              ),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Total Sales: ₹${totalSales.toStringAsFixed(2)}",
+                      Text("Total Sales: ETB${totalSales.toStringAsFixed(2)}",
                           style: Theme.of(context).textTheme.titleMedium),
                       Text("Total Products Sold: $totalProducts",
                           style: Theme.of(context).textTheme.titleMedium),
-                      Text("Profit/Loss: ₹${profitOrLoss.toStringAsFixed(2)}",
+                      Text("Profit: ETB${profitOrLoss.toStringAsFixed(2)}",
                           style: Theme.of(context).textTheme.titleMedium),
                       if (topSellingProduct != null)
                         Text("Top Selling Product: ${topSellingProduct.name}",
@@ -537,11 +751,36 @@ class AnalyticsScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text("Sales by Product",
                   style: Theme.of(context).textTheme.titleMedium),
+
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: "Sort Products by",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                value: _selectedProductFilter,
+                items: const [
+                  DropdownMenuItem(
+                      value: 'name', child: Text('Product Name')),
+                  DropdownMenuItem(
+                      value: 'total_sales', child: Text('Total Sales')),
+                  DropdownMenuItem(
+                      value: 'quantity_sold', child: Text('Quantity Sold')),
+                       DropdownMenuItem(
+                      value: 'profit', child: Text('By Profit')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedProductFilter = value!;
+                  });
+                },
+              ),
               Expanded(
                 child: ListView.builder(
-                  itemCount: manager.products.length,
+                  itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
-                    final product = manager.products[index];
+                    final product = filteredProducts[index];
                     final sales = manager.getSalesForProduct(product.id!);
                     final totalAmount =
                         sales.fold<double>(0, (sum, sale) => sum + sale.amount);
@@ -552,7 +791,7 @@ class AnalyticsScreen extends StatelessWidget {
                       child: ListTile(
                         title: Text(product.name),
                         subtitle: Text(
-                            "Total Sales: ₹${totalAmount.toStringAsFixed(2)}"),
+                            "Total Sales: ETB${totalAmount.toStringAsFixed(2)}"),
                         trailing: Text("Quantity: $totalQuantity"),
                       ),
                     );
@@ -566,7 +805,6 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 }
-
 // You may want to add this utility function at the end of the file
 extension IterableExtension<T> on Iterable<T> {
   T? firstWhereOrNull(bool Function(T) test) {

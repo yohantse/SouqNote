@@ -31,7 +31,7 @@ SouqNote is a comprehensive mobile solution for merchants, shop owners, and entr
 
 ### Clone the Repository
 
-git clone https://github.com/yohantse/SouqNote.git
+git clone https://github.com/souqnotetse/SouqNote.git
 cd SouqNote
 
 ### Install Dependencies
@@ -70,4 +70,4 @@ SouqNote is licensed under the MIT License. See the LICENSE file for details.
 ## Contact
 
 For questions, feedback, or partnership inquiries:
-GitHub: yohantse
+GitHub: souqnotetse

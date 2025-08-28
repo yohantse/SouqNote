@@ -30,6 +30,8 @@ class Sale {
   late double amount;
   late bool isPaid;
   late DateTime saleDate;
+  double? creditGiven; // Track credit given during the sale
+  double? creditReceived; // Track credit received for the sale
 
   Sale({
     this.id = Isar.autoIncrement,
@@ -39,5 +41,7 @@ class Sale {
     required this.amount,
     required this.isPaid,
     required this.saleDate,
+    this.creditGiven = 0.0,
+    this.creditReceived = 0.0,
   });
 }

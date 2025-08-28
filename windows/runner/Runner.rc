@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "aadhisree" "\0"
+            VALUE "FileDescription", "souqnote" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "aadhisree" "\0"
+            VALUE "InternalName", "souqnote" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "aadhisree.exe" "\0"
-            VALUE "ProductName", "aadhisree" "\0"
+            VALUE "OriginalFilename", "souqnote.exe" "\0"
+            VALUE "ProductName", "souqnote" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
