@@ -26,7 +26,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Switch(
               value: themeProvider.themeMode == ThemeMode.dark,
               onChanged: (value) {
-                final provider = Provider.of<ThemeProvider>(context, listen: false);
+                final provider =
+                    Provider.of<ThemeProvider>(context, listen: false);
                 provider.toggleTheme(value);
               },
             ),

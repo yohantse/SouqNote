@@ -45,3 +45,22 @@ class Sale {
     this.creditReceived = 0.0,
   });
 }
+
+@Collection()
+class CreditTransaction {
+  Id? id;
+  late String entityName; // Customer or Supplier name
+  late double amount;
+  late DateTime transactionDate;
+  late String type; // "Given", "Received", "CashCredit"
+  String? description;
+
+  CreditTransaction({
+    this.id = Isar.autoIncrement,
+    required this.entityName,
+    required this.amount,
+    required this.transactionDate,
+    required this.type,
+    this.description,
+  });
+}

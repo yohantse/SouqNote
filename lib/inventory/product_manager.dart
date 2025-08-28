@@ -3,7 +3,6 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
 import 'dart:io';
-import 'package:provider/provider.dart';
 
 class ProductManager extends ChangeNotifier {
   List<Product> _products = [];
@@ -22,13 +21,12 @@ class ProductManager extends ChangeNotifier {
   Future<void> openIsar() async {
     final dir = await getApplicationDocumentsDirectory();
     isar = await Isar.open(
-      [ProductSchema, SaleSchema],
+      [ProductSchema, SaleSchema, CreditTransactionSchema],
       directory: dir.path,
       inspector: true,
     );
     await _loadData();
   }
-
 
   Future<void> _loadData() async {
     if (isar == null) return;
@@ -60,54 +58,52 @@ class ProductManager extends ChangeNotifier {
     notifyListeners();
   }
 
- Future<void> recordSale(
-  int productId,
-  String buyer,
-  int quantity,
-  bool isPaid, {
-  double creditGiven = 0.0,
-  double creditReceived = 0.0,
-}) async {
-  if (isar == null) return;
-  final product = _products.firstWhere((p) => p.id == productId);
-  final amount = product.sellingPrice * quantity;
+  Future<void> recordSale(
+    int productId,
+    String buyer,
+    int quantity,
+    bool isPaid, {
+    double creditGiven = 0.0,
+    double creditReceived = 0.0,
+  }) async {
+    if (isar == null) return;
+    final product = _products.firstWhere((p) => p.id == productId);
+    final amount = product.sellingPrice * quantity;
 
-  var sale = Sale(
-    id: Isar.autoIncrement,
-    productId: productId,
-    buyer: buyer,
-    quantity: quantity,
-    amount: amount,
-    isPaid: isPaid,
-    saleDate: DateTime.now(),
-    creditGiven: creditGiven,
-    creditReceived: creditReceived,
-  );
+    var sale = Sale(
+      id: Isar.autoIncrement,
+      productId: productId,
+      buyer: buyer,
+      quantity: quantity,
+      amount: amount,
+      isPaid: isPaid,
+      saleDate: DateTime.now(),
+      creditGiven: creditGiven,
+      creditReceived: creditReceived,
+    );
 
-  try {
-    await isar!.writeTxn(() async {
-      await isar!.sales.put(sale);
-    });
-    _sales.add(sale);
+    try {
+      await isar!.writeTxn(() async {
+        await isar!.sales.put(sale);
+      });
+      _sales.add(sale);
 
-    // Update product count
-    final updatedProduct = product
-      ..count = product.count - quantity;
-    await isar!.writeTxn(() async {
-      await isar!.products.put(updatedProduct);
-    });
-    final index = _products.indexWhere((p) => p.id == productId);
-    if (index != -1) {
-      _products[index] = updatedProduct;
+      // Update product count
+      final updatedProduct = product..count = product.count - quantity;
+      await isar!.writeTxn(() async {
+        await isar!.products.put(updatedProduct);
+      });
+      final index = _products.indexWhere((p) => p.id == productId);
+      if (index != -1) {
+        _products[index] = updatedProduct;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      print('Error recording sale: $e');
+      rethrow; // Re-throw the error so it can be caught and displayed in the UI
     }
-
-    notifyListeners();
-  } catch (e) {
-    print('Error recording sale: $e');
-    rethrow; // Re-throw the error so it can be caught and displayed in the UI
   }
-}
-
 
   double calculateProfitOrLoss({String timeFrame = 'all'}) {
     DateTime now = DateTime.now();
@@ -132,9 +128,11 @@ class ProductManager extends ChangeNotifier {
         break;
     }
 
-    List<Sale> filteredSales = _sales.where((sale) => sale.saleDate.isAfter(startDate)).toList();
+    List<Sale> filteredSales =
+        _sales.where((sale) => sale.saleDate.isAfter(startDate)).toList();
 
-    double totalRevenue = filteredSales.fold(0, (sum, sale) => sum + sale.amount);
+    double totalRevenue =
+        filteredSales.fold(0, (sum, sale) => sum + sale.amount);
     double totalCostOfSoldItems = 0;
     for (var sale in filteredSales) {
       final product = _products.firstWhere((p) => p.id == sale.productId);
@@ -143,38 +141,36 @@ class ProductManager extends ChangeNotifier {
     return totalRevenue - totalCostOfSoldItems;
   }
 
-
   Future<void> updateProduct(
-  int id, {
-  required String name,
-  required int count,
-  required double sellingPrice,
-  required double cost,
-}) async {
-  if (isar == null) return;
-  
-  final product = _products.firstWhere((p) => p.id == id);
+    int id, {
+    required String name,
+    required int count,
+    required double sellingPrice,
+    required double cost,
+  }) async {
+    if (isar == null) return;
 
-  // Update product fields
-  product
-    ..name = name
-    ..count = count
-    ..sellingPrice = sellingPrice
-    ..cost = cost;
+    final product = _products.firstWhere((p) => p.id == id);
 
-  await isar!.writeTxn(() async {
-    await isar!.products.put(product);
-  });
+    // Update product fields
+    product
+      ..name = name
+      ..count = count
+      ..sellingPrice = sellingPrice
+      ..cost = cost;
 
-  // Update local list
-  final index = _products.indexWhere((p) => p.id == id);
-  if (index != -1) {
-    _products[index] = product;
+    await isar!.writeTxn(() async {
+      await isar!.products.put(product);
+    });
+
+    // Update local list
+    final index = _products.indexWhere((p) => p.id == id);
+    if (index != -1) {
+      _products[index] = product;
+    }
+
+    notifyListeners();
   }
-
-  notifyListeners();
-}
-
 
   List<Sale> getSalesForProduct(int productId) {
     return _sales.where((sale) => sale.productId == productId).toList();
@@ -204,142 +200,98 @@ class ProductManager extends ChangeNotifier {
     return _products.firstWhere((product) => product.id == topSellingProductId);
   }
 
-  // Credit Management Functions
-  double calculateOutstandingBalance(String buyerName) {
-    double totalCreditGiven = _sales
-        .where((sale) => sale.buyer == buyerName)
-        .fold(0, (sum, sale) => sum + (sale.creditGiven ?? 0));
-    double totalCreditReceived = _sales
-        .where((sale) => sale.buyer == buyerName)
-        .fold(0, (sum, sale) => sum + (sale.creditReceived ?? 0));
-    return totalCreditGiven - totalCreditReceived;
+  Future<void> recordCreditGiven({
+    required String entityName,
+    required double amount,
+    String? description,
+  }) async {
+    await recordCreditTransaction(
+      entityName: entityName,
+      amount: amount,
+      type: 'Given',
+      description: description,
+    );
   }
 
-  Future<void> recordCreditPayment(String buyerName, double amount) async {
+  Future<void> recordCreditReceived({
+    required String entityName,
+    required double amount,
+    String? description,
+  }) async {
+    await recordCreditTransaction(
+      entityName: entityName,
+      amount: amount,
+      type: 'Received',
+      description: description,
+    );
+  }
+
+  Future<void> recordCashCredit({
+    required String entityName,
+    required double amount,
+    String? description,
+  }) async {
+    await recordCreditTransaction(
+      entityName: entityName,
+      amount: amount,
+      type: 'CashCredit',
+      description: description,
+    );
+  }
+
+  Future<void> recordCreditTransaction({
+    required String entityName,
+    required double amount,
+    required String type,
+    String? description,
+  }) async {
     if (isar == null) return;
 
-    // Find the most recent sale with outstanding credit for this buyer
-    Sale? sale = _sales.lastWhere((s) => s.buyer == buyerName && (s.creditGiven ?? 0) > (s.creditReceived ?? 0),
-        orElse: () => Sale(
-            productId: 0, buyer: buyerName, quantity: 0, amount: 0, isPaid: true, saleDate: DateTime.now())); // Return a default sale object if none is found
-
-    if (sale.productId == 0) {
-      // No outstanding credit found for this buyer
-      print("No outstanding credit found for $buyerName");
-      return;
-    }
-
-    double outstandingCredit = (sale.creditGiven ?? 0) - (sale.creditReceived ?? 0);
-    double paymentAmount = amount;
-
-    if (paymentAmount > outstandingCredit) {
-      paymentAmount = outstandingCredit; // Limit payment to outstanding credit
-    }
-
-    // Update the sale with the credit received
-    sale.creditReceived = (sale.creditReceived ?? 0) + paymentAmount;
+    final transaction = CreditTransaction(
+      entityName: entityName,
+      amount: amount,
+      transactionDate: DateTime.now(),
+      type: type,
+      description: description,
+    );
 
     await isar!.writeTxn(() async {
-      await isar!.sales.put(sale);
+      await isar!.creditTransactions.put(transaction);
     });
-
     notifyListeners();
   }
-}
 
-class CreditScreen extends StatefulWidget {
-  const CreditScreen({Key? key}) : super(key: key);
+  double calculateOutstandingBalance(String entityName) {
+    if (isar == null) return 0;
 
-  @override
-  State<CreditScreen> createState() => _CreditScreenState();
-}
+    double totalCreditGiven = 0;
+    double totalCreditReceived = 0;
+    double totalCashCredit = 0;
 
-class _CreditScreenState extends State<CreditScreen> {
-  final TextEditingController _buyerController = TextEditingController();
-  final TextEditingController _paymentController = TextEditingController();
-  String _creditMessage = '';
+    List<CreditTransaction> transactions = isar!.creditTransactions
+        .filter()
+        .entityNameEqualTo(entityName)
+        .findAllSync();
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Credit Management", style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _buyerController,
-            decoration: InputDecoration(
-              labelText: "Buyer Name",
-              hintText: "Enter buyer name",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _paymentController,
-            decoration: InputDecoration(
-              labelText: "Payment Amount",
-              hintText: "Enter payment amount",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () {
-              final buyer = _buyerController.text;
-              final amount = double.tryParse(_paymentController.text) ?? 0;
-              if (buyer.isNotEmpty && amount > 0) {
-                context.read<ProductManager>().recordCreditPayment(buyer, amount).then((_) {
-                   setState(() {
-                    _creditMessage = "Payment recorded successfully for $buyer";
-                  });
-                }).catchError((error) {
-                   setState(() {
-                    _creditMessage = "Error recording payment: $error";
-                  });
-                });
-                _buyerController.clear();
-                _paymentController.clear();
-              }
-            },
-            icon: const Icon(Icons.money),
-            label: const Text("Record Payment"),
-          ),
-          const SizedBox(height: 16),
-          Consumer<ProductManager>(
-            builder: (context, manager, child) {
-              final buyerName = _buyerController.text;
-              final outstandingBalance =
-                  manager.calculateOutstandingBalance(buyerName);
-              return Column(children: [
-                 Text(
-                  "Outstanding Balance for $buyerName: ₹${outstandingBalance.toStringAsFixed(2)}",
-                  style: const TextStyle(fontSize: 16),
-                ),
-                Text(
-                  _creditMessage,
-                  style: const TextStyle(fontSize: 14, color: Colors.green),
-                )
-              ],);
-            },
-          ),
-        ],
-      ),
-    );
+    for (var transaction in transactions) {
+      switch (transaction.type) {
+        case 'Given':
+          totalCreditGiven += transaction.amount;
+          break;
+        case 'Received':
+          totalCreditReceived += transaction.amount;
+          break;
+        case 'CashCredit':
+          totalCashCredit += transaction.amount;
+          break;
+      }
+    }
+
+    return totalCreditGiven - totalCreditReceived + totalCashCredit;
+  }
+
+  List<CreditTransaction> getAllCreditTransactions() {
+    if (isar == null) return [];
+    return isar!.creditTransactions.where().findAllSync();
   }
 }
