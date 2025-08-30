@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../inventory/product_manager.dart';
 
 class SaleScreen extends StatefulWidget {
-  SaleScreen({Key? key}) : super(key: key);
+  const SaleScreen({super.key});
 
   @override
   State<SaleScreen> createState() => _SaleScreenState();
@@ -32,20 +32,17 @@ class _SaleScreenState extends State<SaleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Sales", style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
+          Text("Sales", style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 14),
           Consumer<ProductManager>(
             builder: (context, manager, child) {
               return DropdownButtonFormField<int>(
                 decoration: _inputDecoration("Product", "Select product"),
                 value: manager.selectedProductId,
-                items: manager.products.map((product) {
-                  return DropdownMenuItem<int>(
-                    value: product.id,
-                    child: Text(product.name),
-                  );
+                items: manager.products.map((p) {
+                  return DropdownMenuItem(value: p.id, child: Text(p.name));
                 }).toList(),
-                onChanged: (value) => manager.setSelectedProductId(value!),
+                onChanged: (v) => manager.setSelectedProductId(v!),
               );
             },
           ),
@@ -90,8 +87,10 @@ class _SaleScreenState extends State<SaleScreen> {
                     final product = manager.products
                         .firstWhere((p) => p.id == sale.productId);
                     return Card(
-                      elevation: 4,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -99,19 +98,18 @@ class _SaleScreenState extends State<SaleScreen> {
                           children: [
                             Text("${sale.buyer} bought ${product.name}",
                                 style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 6),
                             Text(
                                 "Quantity: ${sale.quantity}, Amount: ₹${sale.amount.toStringAsFixed(2)}"),
                             Text(
                                 "Credit Given: ₹${sale.creditGiven?.toStringAsFixed(2) ?? '0.00'}, Credit Received: ₹${sale.creditReceived?.toStringAsFixed(2) ?? '0.00'}"),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             Text(
                                 DateTime.fromMillisecondsSinceEpoch(
                                         sale.saleDate.millisecondsSinceEpoch)
                                     .toString(),
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.grey)),
+                                style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),

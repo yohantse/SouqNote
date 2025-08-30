@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
-import 'dart:io';
 
 class ProductManager extends ChangeNotifier {
   List<Product> _products = [];

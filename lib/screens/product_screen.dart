@@ -4,7 +4,7 @@ import '../inventory/product_manager.dart';
 import '../models/models.dart';
 
 class ProductScreen extends StatefulWidget {
-  ProductScreen({Key? key}) : super(key: key);
+  const ProductScreen({super.key});
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -23,9 +23,7 @@ class _ProductScreenState extends State<ProductScreen> {
   void initState() {
     super.initState();
     _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
-      });
+      setState(() => _searchQuery = _searchController.text);
     });
   }
 
@@ -42,20 +40,19 @@ class _ProductScreenState extends State<ProductScreen> {
   List<Product> _getFilteredProducts(List<Product> products) {
     if (_searchQuery.isEmpty) return products;
     return products
-        .where((product) =>
-            product.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Products", style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
+          Text("Add Products", style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 14),
           TextFormField(
             controller: _productNameController,
             decoration: _inputDecoration("Product Name", "Enter product name"),
@@ -86,7 +83,7 @@ class _ProductScreenState extends State<ProductScreen> {
             icon: const Icon(Icons.add),
             label: const Text("Add Product"),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           TextFormField(
             controller: _searchController,
             decoration: _inputDecoration("Search", "Search product name"),
@@ -95,14 +92,12 @@ class _ProductScreenState extends State<ProductScreen> {
           Expanded(
             child: Consumer<ProductManager>(
               builder: (context, manager, child) {
-                List<Product> filteredProducts =
+                final products =
                     _getFilteredProducts(List.from(manager.products));
                 return ListView.builder(
-                  itemCount: filteredProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = filteredProducts[index];
-                    return _productCard(product);
-                  },
+                  itemCount: products.length,
+                  itemBuilder: (context, index) =>
+                      _productCard(products[index]),
                 );
               },
             ),
@@ -112,24 +107,47 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
+  Widget _productCard(Product product) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(product.name,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Text("Price: ₹${product.sellingPrice.toStringAsFixed(2)}"),
+            Text("Cost: ₹${product.cost.toStringAsFixed(2)}"),
+            Text("Stock: ${product.count}"),
+          ],
+        ),
+      ),
+    );
+  }
+
   InputDecoration _inputDecoration(String label, String hint) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.blue, width: 2.0),
-        borderRadius: BorderRadius.circular(10.0),
+        borderSide: const BorderSide(color: Colors.blue, width: 2),
+        borderRadius: BorderRadius.circular(10),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     );
   }
 
   void _addProduct() {
-    String name = _productNameController.text;
-    int count = int.tryParse(_productCountController.text) ?? 0;
-    double price = double.tryParse(_sellingPriceController.text) ?? 0;
-    double cost = double.tryParse(_costController.text) ?? 0;
+    final name = _productNameController.text;
+    final count = int.tryParse(_productCountController.text) ?? 0;
+    final price = double.tryParse(_sellingPriceController.text) ?? 0;
+    final cost = double.tryParse(_costController.text) ?? 0;
 
     if (name.isNotEmpty && count > 0 && price > 0 && cost > 0) {
       context.read<ProductManager>().addProduct(name, count, price, cost);
@@ -138,27 +156,5 @@ class _ProductScreenState extends State<ProductScreen> {
       _sellingPriceController.clear();
       _costController.clear();
     }
-  }
-
-  Widget _productCard(Product product) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(product.name,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text("Price: ₹${product.sellingPrice.toStringAsFixed(2)}"),
-            Text("Cost: ₹${product.cost.toStringAsFixed(2)}"),
-            Text("Stock: ${product.count}"),
-          ],
-        ),
-      ),
-    );
   }
 }

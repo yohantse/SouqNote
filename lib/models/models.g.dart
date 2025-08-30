@@ -2002,18 +2002,28 @@ const CreditTransactionSchema = CollectionSchema(
       name: r'description',
       type: IsarType.string,
     ),
-    r'entityName': PropertySchema(
+    r'dueDate': PropertySchema(
       id: 2,
+      name: r'dueDate',
+      type: IsarType.dateTime,
+    ),
+    r'entityName': PropertySchema(
+      id: 3,
       name: r'entityName',
       type: IsarType.string,
     ),
+    r'status': PropertySchema(
+      id: 4,
+      name: r'status',
+      type: IsarType.string,
+    ),
     r'transactionDate': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'transactionDate',
       type: IsarType.dateTime,
     ),
     r'type': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'type',
       type: IsarType.string,
     )
@@ -2045,6 +2055,7 @@ int _creditTransactionEstimateSize(
     }
   }
   bytesCount += 3 + object.entityName.length * 3;
+  bytesCount += 3 + object.status.length * 3;
   bytesCount += 3 + object.type.length * 3;
   return bytesCount;
 }
@@ -2057,9 +2068,11 @@ void _creditTransactionSerialize(
 ) {
   writer.writeDouble(offsets[0], object.amount);
   writer.writeString(offsets[1], object.description);
-  writer.writeString(offsets[2], object.entityName);
-  writer.writeDateTime(offsets[3], object.transactionDate);
-  writer.writeString(offsets[4], object.type);
+  writer.writeDateTime(offsets[2], object.dueDate);
+  writer.writeString(offsets[3], object.entityName);
+  writer.writeString(offsets[4], object.status);
+  writer.writeDateTime(offsets[5], object.transactionDate);
+  writer.writeString(offsets[6], object.type);
 }
 
 CreditTransaction _creditTransactionDeserialize(
@@ -2071,11 +2084,13 @@ CreditTransaction _creditTransactionDeserialize(
   final object = CreditTransaction(
     amount: reader.readDouble(offsets[0]),
     description: reader.readStringOrNull(offsets[1]),
-    entityName: reader.readString(offsets[2]),
-    id: id,
-    transactionDate: reader.readDateTime(offsets[3]),
-    type: reader.readString(offsets[4]),
+    dueDate: reader.readDateTimeOrNull(offsets[2]),
+    entityName: reader.readString(offsets[3]),
+    status: reader.readStringOrNull(offsets[4]) ?? 'Pending',
+    transactionDate: reader.readDateTime(offsets[5]),
+    type: reader.readString(offsets[6]),
   );
+  object.id = id;
   return object;
 }
 
@@ -2091,10 +2106,14 @@ P _creditTransactionDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
+      return (reader.readStringOrNull(offset) ?? 'Pending') as P;
+    case 5:
+      return (reader.readDateTime(offset)) as P;
+    case 6:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2102,7 +2121,7 @@ P _creditTransactionDeserializeProp<P>(
 }
 
 Id _creditTransactionGetId(CreditTransaction object) {
-  return object.id ?? Isar.autoIncrement;
+  return object.id;
 }
 
 List<IsarLinkBase<dynamic>> _creditTransactionGetLinks(
@@ -2418,6 +2437,80 @@ extension CreditTransactionQueryFilter
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      dueDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'dueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      dueDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'dueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      dueDateEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      dueDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      dueDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      dueDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dueDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
       entityNameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2554,25 +2647,7 @@ extension CreditTransactionQueryFilter
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-      idIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'id',
-      ));
-    });
-  }
-
-  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-      idIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'id',
-      ));
-    });
-  }
-
-  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-      idEqualTo(Id? value) {
+      idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -2583,7 +2658,7 @@ extension CreditTransactionQueryFilter
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
       idGreaterThan(
-    Id? value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2597,7 +2672,7 @@ extension CreditTransactionQueryFilter
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
       idLessThan(
-    Id? value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2611,8 +2686,8 @@ extension CreditTransactionQueryFilter
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
       idBetween(
-    Id? lower,
-    Id? upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -2623,6 +2698,142 @@ extension CreditTransactionQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'status',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'status',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'status',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'status',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'status',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'status',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'status',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'status',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'status',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      statusIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'status',
+        value: '',
       ));
     });
   }
@@ -2857,6 +3068,20 @@ extension CreditTransactionQuerySortBy
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      sortByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      sortByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
       sortByEntityName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'entityName', Sort.asc);
@@ -2867,6 +3092,20 @@ extension CreditTransactionQuerySortBy
       sortByEntityNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'entityName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      sortByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      sortByStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.desc);
     });
   }
 
@@ -2930,6 +3169,20 @@ extension CreditTransactionQuerySortThenBy
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      thenByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      thenByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
       thenByEntityName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'entityName', Sort.asc);
@@ -2953,6 +3206,20 @@ extension CreditTransactionQuerySortThenBy
       thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      thenByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      thenByStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.desc);
     });
   }
 
@@ -3002,9 +3269,23 @@ extension CreditTransactionQueryWhereDistinct
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
+      distinctByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dueDate');
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
       distinctByEntityName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'entityName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
+      distinctByStatus({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'status', caseSensitive: caseSensitive);
     });
   }
 
@@ -3044,10 +3325,23 @@ extension CreditTransactionQueryProperty
     });
   }
 
+  QueryBuilder<CreditTransaction, DateTime?, QQueryOperations>
+      dueDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dueDate');
+    });
+  }
+
   QueryBuilder<CreditTransaction, String, QQueryOperations>
       entityNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'entityName');
+    });
+  }
+
+  QueryBuilder<CreditTransaction, String, QQueryOperations> statusProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'status');
     });
   }
 

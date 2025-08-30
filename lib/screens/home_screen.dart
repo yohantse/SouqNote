@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../inventory/product_manager.dart';
 import '../settings/settings_screen.dart';
 import 'dashboard_screen.dart';
 import 'product_screen.dart';
@@ -9,7 +7,7 @@ import 'sale_screen.dart';
 import 'credit_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -20,8 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const DashboardScreen(),
-    ProductScreen(),
-    SaleScreen(),
+    const ProductScreen(),
+    const SaleScreen(),
     const CreditScreen(),
     //const AnalyticsScreen(),
   ];
@@ -37,10 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'profile':
         // Navigator.push(... ProfileScreen)
         break;
-      case 'about':
-        // Navigator.push(... AboutScreen)
-        break;
-        case 'settings':
+
+      case 'settings':
         Navigator.push(
             context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
         break;
@@ -57,7 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onSelected: _onMenuSelected,
             itemBuilder: (context) => const [
               PopupMenuItem(value: 'profile', child: Text('Profile')),
-              PopupMenuItem(value: 'about', child: Text('About')),
               PopupMenuItem(value: 'settings', child: Text('Settings')),
             ],
           )

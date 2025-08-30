@@ -1,10 +1,11 @@
+// lib/screens/credit_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../inventory/product_manager.dart';
 
 class CreditScreen extends StatefulWidget {
-  const CreditScreen({Key? key}) : super(key: key);
+  const CreditScreen({super.key});
 
   @override
   State<CreditScreen> createState() => _CreditScreenState();
@@ -32,8 +33,8 @@ class _CreditScreenState extends State<CreditScreen> {
       child: ListView(
         children: [
           Text("Credit Management",
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
+              style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 14),
           TextFormField(
             controller: _entityController,
             decoration: _inputDecoration("Entity Name", "Customer/Supplier"),
@@ -54,7 +55,7 @@ class _CreditScreenState extends State<CreditScreen> {
                   value: 'Received', child: Text('Credit Received')),
               DropdownMenuItem(value: 'CashCredit', child: Text('Cash Credit')),
             ],
-            onChanged: (value) => setState(() => _selectedCreditType = value!),
+            onChanged: (v) => setState(() => _selectedCreditType = v!),
           ),
           const SizedBox(height: 8),
           TextFormField(
@@ -86,28 +87,29 @@ class _CreditScreenState extends State<CreditScreen> {
                   Text("Credit Transactions:",
                       style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  ...transactions.map((transaction) => Card(
-                        elevation: 2,
+                  ...transactions.map((t) => Card(
+                        elevation: 3,
                         margin: const EdgeInsets.symmetric(vertical: 4),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Entity: ${transaction.entityName}",
+                              Text("Entity: ${t.entityName}",
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
+                              Text("Amount: ₹${t.amount.toStringAsFixed(2)}"),
+                              Text("Type: ${t.type}"),
                               Text(
-                                  "Amount: ₹${transaction.amount.toStringAsFixed(2)}"),
-                              Text("Type: ${transaction.type}"),
-                              Text(
-                                  "Date: ${DateFormat.yMd().format(transaction.transactionDate)}"),
-                              if (transaction.description != null)
-                                Text("Description: ${transaction.description}"),
+                                  "Date: ${DateFormat.yMd().format(t.transactionDate)}"),
+                              if (t.description != null)
+                                Text("Description: ${t.description}"),
                             ],
                           ),
                         ),
-                      ))
+                      )),
                 ],
               );
             },
@@ -163,8 +165,6 @@ class _CreditScreenState extends State<CreditScreen> {
       _entityController.clear();
       _amountController.clear();
       _descriptionController.clear();
-    }).catchError((error) {
-      setState(() => _creditMessage = "Error recording credit: $error");
     });
   }
 }

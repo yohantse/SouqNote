@@ -30,8 +30,8 @@ class Sale {
   late double amount;
   late bool isPaid;
   late DateTime saleDate;
-  double? creditGiven; // Track credit given during the sale
-  double? creditReceived; // Track credit received for the sale
+  double? creditGiven;
+  double? creditReceived;
 
   Sale({
     this.id = Isar.autoIncrement,
@@ -48,19 +48,39 @@ class Sale {
 
 @Collection()
 class CreditTransaction {
-  Id? id;
-  late String entityName; // Customer or Supplier name
+  Id id = Isar.autoIncrement; // <-- note: not nullable if using auto increment
+  late String entityName;
   late double amount;
   late DateTime transactionDate;
   late String type; // "Given", "Received", "CashCredit"
   String? description;
+  DateTime? dueDate;
+  late String status;
 
   CreditTransaction({
-    this.id = Isar.autoIncrement,
     required this.entityName,
     required this.amount,
     required this.transactionDate,
     required this.type,
     this.description,
+    this.dueDate,
+    this.status = 'Pending',
   });
+}
+
+@Collection()
+class AppUser {
+  Id id = Isar.autoIncrement;
+
+  late String username;
+  late String email;
+  late String passwordHash; // Store hashed password
+  late DateTime createdAt;
+
+  AppUser({
+    required this.username,
+    required this.email,
+    required this.passwordHash,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 }
