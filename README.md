@@ -70,4 +70,4 @@ SouqNote is licensed under the MIT License. See the LICENSE file for details.
 ## Contact
 
 For questions, feedback, or partnership inquiries:
-GitHub: souqnotetse
+GitHub: yohantse
